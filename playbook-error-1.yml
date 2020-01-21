@@ -21,3 +21,4 @@
       yum:
         name: "{{ db_package }}"
         state: latest
+      when: "'Error' in command_result.stdout"
