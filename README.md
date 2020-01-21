@@ -56,11 +56,15 @@ Define Main Playbook
 In this section, you create the playbook-webservers.yml playbook and target the hosts in the webservers group. You define a block that imports the three task files you just created.
 
 For the task that imports the install_packages.yml playbook, you define the following variables:
-memory with a value of 256
+- memory with a value of 256
+- web_package with a value of httpd
+- ssl_package with a value of mod_ssl  
+For the task that imports the configure_web.yml file, you define the following variables:
+- https_src with a value of /home/devops/lab2-files/https.conf
+- ssl_src with a value of /home/devops/lab2-files/ssl.tar.gz  
+For the task that imports the configure_firewall.yml playbook, you add a condition to import only the tasks tagged with the production tag and define the fw_package and fw_service variables with a value of firewalld.
 
-web_package with a value of httpd
-
-ssl_package with a value of mod_ssl
+In the rescue clause for the block, you define a task to install the httpd service and notify the restart_services handler to start the service upon its installation. You add an always statement that uses the shell module to query the status of the httpd service using systemctl and define the restart_services handler to restart both the httpd and firewalld services using a loop.
 
 
 
