@@ -1,3 +1,27 @@
-Tower
-en3hCeK4N9DDBd
+Task Control 
+
+configure_database.yml
+======================
+- yum:
+    name: "{{ extra_pachages }}"
+- copy: 
+    src: /home/devops/lab2-files/my.cnf
+    dest: 
+  - yum:
+      name: "{{ extra_packages }}"
+
+  - copy:
+      src: /home/devops/lab2-files/my.cnf
+      dest: "{{ configure_database_path }}"
+      owner: mysql
+      group: mysql
+      mode: 0644
+      seuser: system_u
+      setype: mysqld_etc_t
+      force: yes
+
+  - service:
+      name: "{{ db_service }}"
+      state: started
+      enabled: true
 
