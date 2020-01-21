@@ -1,0 +1,15 @@
+- hosts: localhost
+  connection: local
+  vars:
+   users:
+    Prakhar:
+      name: Prakhar Srivastava
+      telephone: 667777777
+    Josh:
+      name: Joshua Disraeli
+      telephone: 33922999
+  tasks:
+  - name: Print phone records
+    debug:
+      msg: "User {{ item.key }} is {{ item.value.name }} ({{ item.value.telephone }})"
+    loop: "{{ lookup('dict', users) }}"
