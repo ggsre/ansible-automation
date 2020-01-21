@@ -1,0 +1,18 @@
+# 1. Dynamic inventory 
+cat ansible.cfg 
+[defaults]
+inventory = inventory 
+remote_user = devops 
+timeout = 60
+
+[privilege_escalation]
+become = true 
+become_method = sudo 
+become_user = root
+become_ask_pass = false 
+
+cp /opt/ansible/dynamic/*.* ~student/playbook/inventory 
+chmod 755 ~student/playbook/inventory/* 
+ansible bunnies --list-hosts 
+
+# 2. 
