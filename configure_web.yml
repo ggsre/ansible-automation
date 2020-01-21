@@ -1,0 +1,43 @@
+---
+- shell:
+    rpm -q httpd
+  register: rpm_check
+  failed_when: rpm_check.rc == 1
+- block:
+  - template:
+      src: "{{ https_src }}"
+      dest: /etc/httpd/conf.d/
+      force: yes
+  - file:
+      path: /etc/httpd/conf.d/ssl
+      state: directory
+      mode: 0755
+  - file:
+      path: /var/www/html/logs
+      state: directory
+      mode: 0755
+  - stat:
+      path: /etc/httpd/conf.d/ssl.conf
+    register: ssl_file
+  - shell:
+      mv /etc/httpd/conf.d/ssl.conf /etc/httpd/conf.d/ssl.conf.bak
+    when: ssl_file.stat.exists
+  - file:
+      path: /home/devops/lab2-files/
+      state: directory
+      owner: devops
+      group: devops
+  - copy:
+      src: "{{ ssl_src }}"
+      dest: /home/devops/lab2-files/
+  - unarchive:
+      src: "{{ ssl_src }}"
+      dest: /etc/httpd/conf.d/ssl/
+      copy: no
+    notify:
+      - restart_services
+  - copy:
+      content: "{{ inventory_hostname }} ({{ ansible_default_ipv4.address }}) has been customized by Ansible\n"
+      dest: /var/www/html/index.html
+  when:
+    rpm_check.rc == 0
