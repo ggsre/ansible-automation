@@ -5,7 +5,7 @@ playbook-db.yml imports configure_database.yml
 Handlers
 ========
 In this section, you use a text editor to create the config_db_handler.yml playbook file. This file installs a database server and creates users. When the database server is installed, the playbook restarts the service.  
-config_db_handler.yml 
+**config_db_handler.yml**  
 
 Handling Errors
 ===============
