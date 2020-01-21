@@ -11,12 +11,12 @@ Handling Errors
 ===============
 Ignore Failed Commands  
 In this section, you learn how to ignore failed commands during the execution of playbooks.  
-playbook-error.yml  
+**=> playbook-error.yml**    
 
 Override Task Failures  
 In this section, you continue working with the playbook you created in the previous section. You insert a new task at the beginning of the playbook that executes a remote command and captures the output. The output of the command is used by the task that installs the mariadb-server package to override what Ansible considers to be a failure.  
-ansible db -a 'yum -y remove mariadb-server' --become 
-playbook-error-1.yml  
+**=> ansible db -a 'yum -y remove mariadb-server' --become**   
+**=> playbook-error-1.yml  
 
 Override changed State for Tasks  
 In this section, you update the task that installs the mariadb-server package by overriding the condition that triggers the changed state using the return code saved in the command_result.rc variable.  
