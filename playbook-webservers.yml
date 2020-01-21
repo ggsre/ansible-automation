@@ -1,0 +1,40 @@
+---
+- hosts: webservers
+  become: yes
+  tasks:
+    - block:
+      - import_tasks: install_packages.yml
+        vars:
+          memory: 256
+          web_package: httpd
+          ssl_package: mod_ssl
+          web_service: httpd
+      - import_tasks: configure_web.yml
+        vars:
+          https_src: /home/devops/lab2-files/https.conf
+          ssl_src: /home/devops/lab2-files/ssl.tar.gz
+      - import_tasks: configure_firewall.yml
+        vars:
+          fw_package: firewalld
+          fw_service: firewalld
+        tags: production
+      rescue:
+      - yum:
+          name: httpd
+          state: latest
+        notify:
+          - restart_services
+
+      - debug:
+          msg: "Failed to import and run all the tasks; installing the web server manually"
+      always:
+      - shell:
+          cmd: "systemctl status httpd"
+  handlers:
+    - name: restart_services
+      service:
+        name: "{{ item }}"
+        state: restarted
+      loop:
+        - httpd
+        - firewalld
