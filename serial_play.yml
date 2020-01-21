@@ -1,0 +1,8 @@
+- hosts: all
+  gather_facts: true
+  serial: 1
+  tasks:
+  - name: Gather facts
+    setup:
+    register: result
+  - debug: var=result.ansible_facts.ansible_hostname
