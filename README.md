@@ -46,6 +46,21 @@ Finally, you define the following tasks:
 - A task that retrieves the SSL certificates file that the ssl_src variable defines (the variable is set in the main playbook), extracts it under the /etc/httpd/conf.d/ssl/ directory, and notifies the restart_services handler.
 - A task that creates the index.html file under the /var/www/html/ directory that uses Ansible facts and has the customized content  
 
+**=> configure_web.yml**  
+
+Define Firewall Tasks  
+In this section, you create the configure_firewall.yml task file, starting with a task that installs the package that the fw_package variable defines (the variable is set in the main playbook). You create a task that starts the service specified by the fw_service variable and a task that adds firewall rules for the http and https services using a loop. The rules need to be applied immediately and persistently. Tag all tasks with the production tag.  
+**=> configure_firewall.yml**  
+
+Define Main Playbook  
+In this section, you create the playbook-webservers.yml playbook and target the hosts in the webservers group. You define a block that imports the three task files you just created.
+
+For the task that imports the install_packages.yml playbook, you define the following variables:
+memory with a value of 256
+
+web_package with a value of httpd
+
+ssl_package with a value of mod_ssl
 
 
 
