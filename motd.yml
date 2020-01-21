@@ -1,6 +1,9 @@
-- hosts: all
+---
+- hosts: webservers
   user: devops
   become: true
+  vars:
+    system_owner: clyde@example.com
   tasks:
     - template:
         src: motd.j2
