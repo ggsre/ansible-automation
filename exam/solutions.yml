@@ -15,4 +15,312 @@ cp /opt/ansible/dynamic/*.* ~student/playbook/inventory
 chmod 755 ~student/playbook/inventory/* 
 ansible bunnies --list-hosts 
 
-# 2. 
+# 2. Install http 
+cat httpd.yml 
+---
+- name: httpd.yml 
+  hosts: nodes 
+  tasks:
+  - name: install httpd 
+    yum:
+      name: httpd 
+      state: latest 
+  - name: wget 
+    get_url:
+      url: http://materials.exampel.com/jhttpd.conf 
+      dest: /etc/httpd/conf/httpd.conf 
+  - name: make content 
+    copy:
+      content: "Hello from xxx"
+      dest: /var/www/html/index.html
+      force: no 
+  - name: use lineinfile module
+    lineinfile:
+      path: /var/www/html/index.html
+      regexp: 'Hello from xxx'
+      line: "Hello from {{ ansible_hostname }}"
+  - name: start service 
+    service:
+      name: httpd 
+      state: started 
+      enabled: true 
+  - name: firewalld 
+    firewalld:
+      service: http
+      state: enabled 
+      immediate: true 
+      permanent: true 
+      
+# 3. htaccess 
+cat httpd_auth.yml 
+---
+- name: httpd_auth.yml 
+  hosts: nodes 
+  tasks:
+  - name:
+    file:
+      path: /var/www/html/protected 
+      state: directory 
+      mode: 0755
+  - name: wget
+    get_url:
+      url: http://materials.example.com/htaccess
+      dest: /var/www/html/protected/.htaccess
+      mode: 0755 
+  - name: make content 
+    copy:
+      content: "This is {{ ansible_hostname }} protected"
+      dest: /var/www/html/protected/index.html 
+  - name: use replace 
+    replace: 
+      path: /etc/httpd/conf/httpd.conf 
+      regexp: 'AllowOverride None'
+      replace: 'AllowOverride Authconfig'
+  - name: restart httpd 
+    service:
+      name: httpd 
+      state: restarted 
+
+# 4. Adhoc commands 
+cat adhoc.sh 
+#!/bin/bash 
+ansible nodes -m copy -a "src=/usr/local/bin/runme.sh dest=/usr/bin/runme.sh mode=0755 owner=devops group=devops" -u devops -b 
+ansible nodes -m command -a '/bin/sh /usr/bin/runme.sh' -b --become-user=devops 
+
+# 5. Directory Roles 
+mkdir /home/ansible/playbooks/roles 
+
+cat roles.yml 
+---
+- src: http://content.example.com/x.gz 
+  name: examfun
+...
+
+ansible-galaxy install -r roles.yml -p /home/ansible/playbooks/roles 
+
+tree /home/ansible/playbooks/roles
+
+# 6. vars files 
+cat users.yml 
+---
+- name: users.yml 
+  hosts: nodes 
+  roles:
+  - examfun
+  tasks:
+  - name: create group 
+    group:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - staff
+      - guests
+      - webclients
+  - name: create staff users 
+    user: 
+      name: "{{ item }}"
+      state: present 
+      groups: staff,webclients 
+    with_items:
+      - "{{ staff }}"
+  - name: create guest user 
+    user: 
+      name: "{{ item }}"
+      state: present 
+      groups: guests,webclients 
+    with_items: 
+      - "{{ guests }}"
+  - name: delete revoke users 
+    user: 
+      name: "{{ item }}"
+      state: absent 
+      remove: yes 
+    with_items:
+      - "{{ revoke }}"
+ 
+# 7. vault 
+cat /home/ansible/playbooks/vaultpwd 
+ansiansi 
+
+ansible-vault create /home/devops/playbooks/crypt.yml --vault-password-file=/home/ansible/playbooks/vaultpwd
+
+cat vault.yml 
+---
+- name: vault.yml 
+  hosts: nodes
+  vars_files:
+    - crypt.yml 
+  tasks:
+  - name: create folder 
+    file: 
+      path: /var/www/html/vault 
+      state: directory 
+  - name: wget 
+    get_url:
+      url: http://materials.example.com/ansible/vault.zip 
+      dest: /var/www/html/vault
+  - name: unzip 
+    shell: cd /var/www/html/vault; unzio -o -P {{ password }} -u vault.zip 
+
+ansible-playbook vault.yml --vault-password-file=/home/ansible/playbooks/vaultpwd 
+
+# 8. shutdown.yml 
+cat shutdown.yml
+---
+- name: shutdown.yml 
+  hosts: node1,node3 
+  tasks:
+  - name: shutdown web 
+    service:
+      name: httpd 
+      state: stopped 
+
+cat noshutdown.yml 
+---
+- name: noshutdown.yml 
+  hosts: nodes
+  tasks:
+  - name: noshutdown web 
+    service:
+      name: httpd 
+      state: restarted 
+
+# 9. facts 
+cat facts.yml
+---
+- name: facts.yml
+  hosts: nodes 
+  tasks:
+  - name: gather facts 
+    copy: 
+      content: "{{ ansible_hostname }} {{ ansible_processor_count }} {{ ansible_default_ipv4.address }} {{ ansible_default_ipv4.macaddress }}"
+      dest: /var/www/html/ansible_details.html 
+
+
+# 10. groups 
+cat inventory 
+[production]
+servera.lab.example.com
+serverb.lab.example.com
+[backup]
+serverc.lab.example.com
+serverd.lab.example.com
+
+cat webproduction.yml 
+--- 
+- name: webprod.yml 
+  hosts: nodes 
+  tasks:
+  - name: tar only in prod hostgroup 
+    shell: tar czf /var/tmp/production.tar.gz /var/www/html 
+    when: inventory_hostname in groups['production']
+  - name: tar only in backup group 
+    shell: tar czf /var/tmp/backup.tar.gz /var/log/httpd
+    when: inventory_hostname in groups['backup']
+
+
+# 11. tags 
+cat tags.yml 
+---
+- name: tags.yml 
+  hosts: nodes 
+  tasks: 
+  - name: tag1 
+    copy: 
+      src: /var/tmp/ans.txt 
+      dest: /var/tmp
+    when: inventory_hostname in groups['production']
+    tags: nodegroup1 
+  - name: tag2
+    copy: 
+      src: /var/tmp/ans.txt 
+      dest: /var/tmp
+    when: inventory_hostname in groups['backup']
+    tags: nodegroup2 
+
+ansible-playbook tags.yml --tags nodegoup1 
+ansible-playbook tags.yml --tags nodegoup2 
+
+# 12. abort.txt 
+cat access.yml 
+---
+- name: access.yml 
+  hosts: nodes 
+  tasks: 
+  - name: copy if not exist 
+    copy:
+      content: "This is ansible server"
+      dest: /etc/ansible-abort.txt 
+      force: no 
+
+ansible-playbook access.yml 
+
+# 13. url access
+cat urlaccess.yml
+---
+- name: urlaccess 
+  hosts: nodes 
+  tasks: 
+  - block 
+    - name: wget 
+      get_url:
+        url: http://example.com/test.yml 
+        dest: /var/www/html
+  - rescue:
+    - name: error message 
+      copy: 
+        content: "url not accessible\n"
+        dest: /var/www/html/notaccess.html 
+
+
+# 14. debug message 
+cat failweb.yml
+---
+- name: failweb.yml
+  hosts: nodes 
+  ignore_errors: yes 
+  force_handlers: yes 
+  tasks:
+  - name: install pkg 
+    yum:
+      name: httpd 
+      state: present 
+    register: result_1 
+  - name: call a handler 
+    shell: echo " "
+    notify: a 
+    when: result_1 | failed 
+  - name: start the service 
+    service: 
+      name: httpd 
+      state: started 
+      enabled: true 
+    register: result_2
+  - name: call b handler 
+    shell: echo " "
+    notify: b 
+    when: result_2 | failed 
+  - name: call c handler 
+    shell: echo " "
+    notify: c 
+    when: result_1 | failed or result_2 | failed 
+  - name: call d handler 
+    shell: echo " "
+    notify: d 
+    when: result_1 | success and result_2 | success 
+  handlers:
+  - name: a 
+    debug: 
+      msg: "installation failed"
+  - name: b 
+    debug:
+      msg: "service failed"
+  - name: c
+    debug:
+      msg: "playbook is not complete"
+  - name: d
+    debug: 
+      msg: "both task succeeded"
+
+  
+  
