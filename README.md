@@ -39,17 +39,13 @@ In this section, you create the configure_web.yml task file and add a task to it
 Next, you create a block that executes only if the httpd package is installed (using the return code that was captured in the first task). The block needs to start with a task that retrieves the file that the https_src variable defines (the variable is set in the main playbook) and copies it to hosts in the webservers hostgroup in the /etc/httpd/conf.d/ directory.  
 Finally, you define the following tasks:
 
-A task that creates the ssl directory, which stores SSL certificates, under /etc/httpd/conf.d/ on the managed host with a mode of 0755.
+- A task that creates the ssl directory, which stores SSL certificates, under /etc/httpd/conf.d/ on the managed host with a mode of 0755.
+- A task that creates the logs directory, which stores SSL logs, under /var/www/html/ on the managed host with a mode of 0755.
+- A task that uses the stat module to ensure that the /etc/httpd/conf.d/ssl.conf file exists, and captures the output in a variable.
+- A task that renames the /etc/httpd/conf.d/ssl.conf file as /etc/httpd/conf.d/ssl.conf.bak only if the file exists (based on the captured output from the previous task).
+- A task that retrieves the SSL certificates file that the ssl_src variable defines (the variable is set in the main playbook), extracts it under the /etc/httpd/conf.d/ssl/ directory, and notifies the restart_services handler.
+- A task that creates the index.html file under the /var/www/html/ directory that uses Ansible facts and has the customized content  
 
-A task that creates the logs directory, which stores SSL logs, under /var/www/html/ on the managed host with a mode of 0755.
-
-A task that uses the stat module to ensure that the /etc/httpd/conf.d/ssl.conf file exists, and captures the output in a variable.
-
-A task that renames the /etc/httpd/conf.d/ssl.conf file as /etc/httpd/conf.d/ssl.conf.bak only if the file exists (based on the captured output from the previous task).
-
-A task that retrieves the SSL certificates file that the ssl_src variable defines (the variable is set in the main playbook), extracts it under the /etc/httpd/conf.d/ssl/ directory, and notifies the restart_services handler.
-
-A task that creates the index.html file under the /var/www/html/ directory that uses Ansible facts and has the customized content  
 
 
 
