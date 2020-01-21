@@ -69,6 +69,59 @@ In the rescue clause for the block, you define a task to install the httpd servi
 
 **=> playbook-webservers.yml**  
 
+Troubleshooting
+===============
+Find the error code in samba.yml without executing the playbook  
+$ cat ansible.cfg  
+[defaults]  
+inventory = /home/devops/ansible_implementation/hosts  
+host_key_checking = False  
+command_warnings=False  
+log_path = /home/devops/ansible_implementation/ansible.log  
+$  
+**=> samba.yml**  
+
+Jinja2 Templates
+================
+In this exercise, you create a simple Jinja2 template that delivers a custom "Message of the Day" file.  
+**=> motd.j2**  
+**=> motd.yml**  
+
+Dictionary Parsing
+==================
+In this exercise, you create a playbook to filter the ansible_all_ipv4_addresses from ansible_facts using the setup module.  
+**=> dict_facts.yml**  
+
+**Create Playbook with dict Module**  
+In this section, you create a playbook that uses the dict module to extract values from predefined variables.  
+Use lookup and the dict module to print the values defined in the dictionary.  
+**=> dict_pars.yml**  
+
+Optimize Ansible
+================
+In this exercise, you use the serial keyword to run tasks that display the host names of the hosts one at a time instead of running the tasks in parallel on all of the hosts.  
+**=> serial_play.yml**  
+
+Custom Module Development
+=========================
+**Create hello-world Module**  
+In this exercise, you develop a custom module called hello-world to print hello: world as output.  
+**=> mkdir library**  
+**=> library/hello-world.py**  
+**=> first-module.yml**  
+
+**Create version_change Module** 
+In this exercise, you develop a module called version_change to bump the semantic versioning—that is, bump the minor and patch versions from 1.1.1.  
+**=> library/version_change.py**  
+**=> second-module.yml**  
+
+
+
+
+
+
+
+
 
 
 
